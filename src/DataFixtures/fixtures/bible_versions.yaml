@@ -1,0 +1,7 @@
+App\Document\BibleVersion:
+    - shortName: 'KJ2000'
+      language: 'en'
+    - shortName: 'SpaRVG'
+      language: 'es'
+    - shortName: 'SpaRV1865'
+      language: 'es'

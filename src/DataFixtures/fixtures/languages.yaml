@@ -1,0 +1,5 @@
+App\Document\Language:
+    - shortName: 'en'
+      name: 'English'
+    - shortName: 'es'
+      name: 'Spanish'
