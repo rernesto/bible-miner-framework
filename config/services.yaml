@@ -9,11 +9,11 @@ parameters:
     appTitle: 'Bible Miner'
     appVersion: '0.1'
     dbKJ2000:
-        url: 'sqlite:///%kernel.project_dir%/data/db/KJ2000.sqlite'
+        url: 'sqlite:///%kernel.project_dir%/data/db/KJ2000.bib.db'
     dbSpaRVG:
-        url: 'sqlite:///%kernel.project_dir%/data/db/SpaRVG.sqlite'
+        url: 'sqlite:///%kernel.project_dir%/data/db/SpaRVG.bib.db'
     dbSpaRV1865:
-        url: 'sqlite:///%kernel.project_dir%/data/db/SpaRV1865.sqlite'
+        url: 'sqlite:///%kernel.project_dir%/data/db/SpaRV1865.bib.db'
 
 services:
     # default configuration for services in *this* file
