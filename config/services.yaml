@@ -6,6 +6,12 @@
 parameters:
     env(MONGODB_URL): ''
     env(MONGODB_DB): ''
+    dbKJ2000:
+        url: 'sqlite:///%kernel.project_dir%/data/KJ2000.sqlite'
+    dbSpaRVG:
+        url: 'sqlite:///%kernel.project_dir%/data/SpaRVG.sqlite'
+    dbSpaRV1865:
+        url: 'sqlite:///%kernel.project_dir%/data/SpaRV1865.sqlite'
 
 services:
     # default configuration for services in *this* file
@@ -27,3 +33,7 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # doctrine services definition
+    Doctrine\Common\EventManager:
+    Doctrine\DBAL\Configuration:
