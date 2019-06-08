@@ -1,4 +1,6 @@
 api_platform:
+    title: '%appTitle%'
+    version: '%appVersion%'
     mapping:
         paths: ['%kernel.project_dir%/src/Document']
     formats:

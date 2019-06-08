@@ -6,6 +6,8 @@
 parameters:
     env(MONGODB_URL): ''
     env(MONGODB_DB): ''
+    appTitle: 'Bible Miner'
+    appVersion: '0.1'
     dbKJ2000:
         url: 'sqlite:///%kernel.project_dir%/data/KJ2000.sqlite'
     dbSpaRVG:
