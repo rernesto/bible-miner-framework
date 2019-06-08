@@ -38,6 +38,8 @@ class ConnectionFactory
      */
     public function getConnection(string $connectionName)
     {
-        return DriverManager::getConnection($this->params->get($connectionName), $this->config, $this->eventManager);
+        return DriverManager::getConnection(
+            $this->params->get($connectionName), $this->config, $this->eventManager
+        );
     }
 }
