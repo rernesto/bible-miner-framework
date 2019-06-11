@@ -2,43 +2,20 @@
 
 namespace App\Command;
 
-
-use App\Database\DBAL\ConnectionFactory;
 use App\Document\BibleVerse;
 use App\Document\BibleVersion;
 use Doctrine\DBAL\DBALException;
-use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Phpml\Tokenization\WordTokenizer;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
-class BibleTextImportCommand extends Command
+class BibleTextImportCommand extends MinerCommand
 {
     protected static $defaultName = 'bible:text:import';
-
-    protected $dbalConnectionFactory;
-
-    /**
-     * @var DocumentManager
-     */
-    protected $dm;
-
-    public function __construct(?string $name = null,
-                                ConnectionFactory $dbalConnectionFactory,
-                                DocumentManager $dm, ParameterBagInterface $params
-    )
-    {
-        $this->dbalConnectionFactory = $dbalConnectionFactory;
-        $this->dm = $dm;
-
-        parent::__construct($name);
-    }
 
     protected function configure()
     {
