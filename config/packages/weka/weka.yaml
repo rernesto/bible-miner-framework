@@ -1,0 +1,23 @@
+parameters:
+    weka:
+        home: '/usr/local/weka-3-8-3'
+        java:
+            path: '/usr/bin/java'
+            options: ['-Xmx1024M']
+            classpath:
+                - 'weka.jar'
+                - 'lib/sqlite-jdbc-3.25.1.jar'
+        packages:
+            snowball-stemmers:
+                classpath:
+                    - 'snowball-stemmers/snowball-stemmers.jar'
+            cascadeKMeans:
+                classpath:
+                    - 'cascadeKMeans/cascadeKMeans.jar'
+            XMeans:
+                classpath:
+                    - 'XMeans/XMeans.jar'
+            LibSVM:
+                classpath:
+                    - 'LibSVM/LibSVM.jar'
+                    - 'LibSVM/lib/libsvm.jar'
