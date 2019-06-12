@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Document\BibleVerse;
@@ -27,7 +29,7 @@ class BibleTextImportCommand extends MinerCommand
             )
             ->addOption(
                 'truncate', null,InputOption::VALUE_OPTIONAL,
-                'Truncate Vocabulary Collection.', false
+                'Truncate Vocabulary Collection.', true
             )
 
         ;
@@ -38,6 +40,7 @@ class BibleTextImportCommand extends MinerCommand
      * @param OutputInterface $output
      * @return void
      * @throws DBALException
+     * @throws MongoDBException
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -47,14 +50,21 @@ class BibleTextImportCommand extends MinerCommand
             'db' . $input->getArgument('datasource')
         );
 
+        $bibleVersionDocument = $this->dm->getRepository(BibleVersion::class)
+            ->findOneBy(['shortName' => $input->getArgument('datasource')]);
+
         if($input->getOption('truncate') == true) {
-            $io->warning(sprintf('Truncating Bible Verses Table %s', 'bible_verses'));
-            try {
-//                $databaseUtils->truncateTable('bible_verses');
-            } catch (DBALException $e) {
-                $io->error($e->getMessage());
+            $io->warning(sprintf('Deleting records for Bible Verses Table %s', 'bible_verses'));
+            $documentsToErase = $this->dm->createQueryBuilder(BibleVerse::class)
+                ->field('bibleVersion')
+                ->references($bibleVersionDocument)
+                ->getQuery()->execute();
+
+            foreach($documentsToErase as $documentToErase) {
+                $this->dm->remove($documentToErase);
             }
         }
+        $this->dm->flush();
 
         if (isset($dbalConnection)) {
             $bibleTextQueryBuilder = $dbalConnection->createQueryBuilder();
@@ -71,9 +81,6 @@ class BibleTextImportCommand extends MinerCommand
 
             $i = 0;
             $wordTokenizer = new WordTokenizer();
-
-            $bibleVersionDocument = $this->dm->getRepository(BibleVersion::class)
-                ->findOneBy(['shortName' => $input->getArgument('datasource')]);
 
             foreach($bibleVerses as $bibleVerse) {
 
