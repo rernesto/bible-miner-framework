@@ -5,12 +5,13 @@
         "php": "^7.3",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-json": "*",
         "ext-pdo": "*",
         "alcaeus/mongo-php-adapter": "^1.1",
         "api-platform/core": "^2.4",
-        "cocur/arff": "^0.2.3",
         "doctrine/dbal": "^2.9",
         "doctrine/mongodb-odm-bundle": "4.*",
+        "league/csv": "^9.2",
         "markrogoyski/math-php": "^0.51.0",
         "nelmio/cors-bundle": "^1.5",
         "php-ai/php-ml": "^0.8.0",
@@ -23,7 +24,8 @@
         "symfony/monolog-bundle": "^3.3",
         "symfony/security-bundle": "4.3.*",
         "symfony/twig-bundle": "4.3.*",
-        "symfony/yaml": "4.3.*"
+        "symfony/yaml": "4.3.*",
+        "wamania/php-stemmer": "^1.2"
     },
     "config": {
         "preferred-install": {

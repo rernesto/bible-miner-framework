@@ -16,9 +16,6 @@
             "src/Entity/.gitignore"
         ]
     },
-    "cocur/arff": {
-        "version": "v0.2.3"
-    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {
@@ -92,6 +89,9 @@
     },
     "guzzlehttp/psr7": {
         "version": "1.5.2"
+    },
+    "league/csv": {
+        "version": "9.2.1"
     },
     "markrogoyski/math-php": {
         "version": "v0.51.0"
@@ -378,6 +378,9 @@
     },
     "twig/twig": {
         "version": "v2.11.2"
+    },
+    "wamania/php-stemmer": {
+        "version": "1.2"
     },
     "willdurand/negotiation": {
         "version": "v2.3.1"
