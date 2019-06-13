@@ -1,8 +1,8 @@
 parameters:
     weka:
-        home: '/usr/local/weka-3-8-3'
+        home: '/opt/weka-3-8-3'
         java:
-            path: '/usr/bin/java'
+            exec: '/usr/bin/java'
             options: ['-Xmx1024M']
             classpath:
                 - 'weka.jar'

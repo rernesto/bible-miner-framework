@@ -1,5 +1,12 @@
 ###> JetBrains ###
 .idea
+###< JetBrains ###
+
+###> Misc ###
+DatabaseUtils.props
+!config/packages/weka/DatabaseUtils.props
+###< Misc ###
+
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php

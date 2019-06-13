@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-class BibleTextImportCommand extends MinerCommand
+class BibleTextImportCommand extends BibleMinerCommand
 {
     protected static $defaultName = 'bible:text:import';
 

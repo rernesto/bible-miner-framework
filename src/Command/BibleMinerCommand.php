@@ -8,7 +8,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
-class MinerCommand extends Command
+abstract class BibleMinerCommand extends Command
 {
     /**
      * @var ConnectionFactory
