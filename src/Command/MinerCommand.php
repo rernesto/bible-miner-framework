@@ -25,6 +25,8 @@ abstract class MinerCommand extends Command
      */
     protected $dataPath;
 
+    public CONST TMP_PREFIX = '__';
+
     /**
      * @var DocumentManager
      */
