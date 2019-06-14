@@ -9,7 +9,7 @@ b
 c
 como
 con
-contra
+#contra
 cual
 cuando
 d
