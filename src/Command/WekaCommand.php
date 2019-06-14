@@ -9,7 +9,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
-abstract class WekaCommand extends BibleMinerCommand
+abstract class WekaCommand extends MinerCommand
 {
     /**
      * @var string

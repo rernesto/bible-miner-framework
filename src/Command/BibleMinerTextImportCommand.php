@@ -8,16 +8,19 @@ use App\Document\BibleVerse;
 use App\Document\BibleVersion;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ODM\MongoDB\MongoDBException;
+use League\Csv\CannotInsertRecord;
+use League\Csv\Writer;
 use Phpml\Tokenization\WordTokenizer;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Wamania\Snowball\Stemmer;
 
-class BibleTextImportCommand extends BibleMinerCommand
+class BibleMinerTextImportCommand extends MinerCommand
 {
-    protected static $defaultName = 'bible:text:import';
+    protected static $defaultName = 'bible-miner:text:import';
 
     protected function configure()
     {
@@ -41,6 +44,7 @@ class BibleTextImportCommand extends BibleMinerCommand
      * @return void
      * @throws DBALException
      * @throws MongoDBException
+     * @throws CannotInsertRecord
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -50,6 +54,9 @@ class BibleTextImportCommand extends BibleMinerCommand
             'db' . $input->getArgument('datasource')
         );
 
+        /**
+         * @var $bibleVersionDocument BibleVersion
+         */
         $bibleVersionDocument = $this->dm->getRepository(BibleVersion::class)
             ->findOneBy(['shortName' => $input->getArgument('datasource')]);
 
@@ -82,8 +89,16 @@ class BibleTextImportCommand extends BibleMinerCommand
             $i = 0;
             $wordTokenizer = new WordTokenizer();
 
-            foreach($bibleVerses as $bibleVerse) {
+            $verseCsvWriter = Writer::createFromString('');
+            $verseCsvWriter->insertOne(['references', 'verses']);
 
+            $verseTokensCsvWriter = Writer::createFromString('');
+            $verseTokensCsvWriter->insertOne(['references', 'verse_tokens']);
+
+            $stemmedTokensCsvWriter = Writer::createFromString('');
+            $stemmedTokensCsvWriter->insertOne(['references', 'stemmed_tokens']);
+
+            foreach($bibleVerses as $bibleVerse) {
                 $bibleVerseDocument = new BibleVerse();
                 $bibleVerseDocument->setReference($bibleVerse->ref);
                 $bibleVerseDocument->setVerseText(
@@ -100,6 +115,25 @@ class BibleTextImportCommand extends BibleMinerCommand
                 );
                 $bibleVerseDocument->setBibleVersion($bibleVersionDocument);
                 $this->dm->persist($bibleVerseDocument);
+
+                $verseCsvWriter->insertOne([$bibleVerseDocument->getReference(), $bibleVerseDocument->getVerseText()]);
+                $verseTokensCsvWriter->insertOne([$bibleVerseDocument->getReference(), $bibleVerseDocument->getVerseTokens()]);
+
+                $stemmerLanguage = 'Wamania\\Snowball\\' . $bibleVersionDocument->getLanguage()->getName();
+
+                /**
+                 * @var $stemmer Stemmer
+                 */
+                $stemmer = new $stemmerLanguage();
+
+                $stemmedVerse = array_map(
+                        function($word) use ($stemmer, $stemmedTokensCsvWriter, $bibleVerseDocument) {
+                            return $stemmer->stem($word);
+                        }, explode(' ', $bibleVerseDocument->getVerseTokens())
+                );
+
+                $stemmedTokensCsvWriter->insertOne([$bibleVerseDocument->getReference(), implode(' ', $stemmedVerse)]);
+
                 $i++;
                 $io->progressAdvance();
             }
@@ -109,6 +143,21 @@ class BibleTextImportCommand extends BibleMinerCommand
 
             try {
                 $this->dm->flush();
+                file_put_contents(
+                    $this->tmpPath . DIRECTORY_SEPARATOR .
+                    '__' . $input->getArgument('datasource') .'.csv',
+                    $verseCsvWriter->getContent()
+                );
+                file_put_contents(
+                    $this->tmpPath . DIRECTORY_SEPARATOR .
+                    '__' . $input->getArgument('datasource') .'-tokens.csv',
+                    $verseTokensCsvWriter->getContent()
+                );
+                file_put_contents(
+                    $this->tmpPath . DIRECTORY_SEPARATOR .
+                    '__' . $input->getArgument('datasource') .'-stem-tokens.csv',
+                    $stemmedTokensCsvWriter->getContent()
+                );
                 $io->success(sprintf('Commited %d documents to collection...', $i));
             } catch (MongoDBException $e) {
                 $io->error($e->getMessage());
