@@ -21,3 +21,6 @@ parameters:
                 classpath:
                     - 'LibSVM/LibSVM.jar'
                     - 'LibSVM/lib/libsvm.jar'
+            normalize:
+                classpath:
+                    - 'normalize/normalize.jar'
