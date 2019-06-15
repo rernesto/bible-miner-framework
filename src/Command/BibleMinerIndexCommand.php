@@ -13,6 +13,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 class BibleMinerIndexCommand extends WekaCommand
 {
@@ -55,6 +57,10 @@ class BibleMinerIndexCommand extends WekaCommand
                 'vocabulary-size', null,InputOption::VALUE_OPTIONAL,
                 'Create stemmed vocabulary and index', 20000
             )
+            ->addOption(
+                'use-database', null,InputOption::VALUE_OPTIONAL,
+                'Use database instead CSV (Not recommended)', false
+            )
 
         ;
     }
@@ -76,21 +82,30 @@ class BibleMinerIndexCommand extends WekaCommand
         $this->bibleVersionDocument = $this->dm->getRepository(BibleVersion::class)
             ->findOneBy(['shortName' => $input->getArgument('bible-version')]);
 
-//        $this->_createArffFromDatabase($input, $output);
 
-        $this->_createArffFromCSV($input, $output);
-        $this->_applyNominalToString($input, $output);
-        $this->_applyStringToWordVector($input, $output);
+        if ($input->getOption('use-database') == true) {
+            try {
+                $io->warning('This option its\'n not recommended and discontinued.' );
+                $this->_createArffFromDatabase($input, $io);
+            } catch (DBALException $e) {
+                $io->error($e->getMessage());
+            }
 
-        if ($input->getOption('normalize') == true) {
-            $this->_normalize($input, $output);
+        } else {
+            $this->_createArffFromCSV($input, $io);
         }
 
-        $this->_convertToJSON($input, $output);
+        $this->_applyNominalToString($io);
+        $this->_applyStringToWordVector($input, $io);
 
+        if ($input->getOption('normalize') == true) {
+            $this->_normalize($io);
+        }
+
+        $this->_convertToJSON($io);
     }
 
-    private function _convertToJSON(InputInterface $input, OutputInterface $output) {
+    private function _convertToJSON(SymfonyStyle $io) {
 
         $wekaProcess = Process::fromShellCommandline(
             $this->getSimpleCLIPrefix() . " " .
@@ -102,14 +117,50 @@ class BibleMinerIndexCommand extends WekaCommand
 
         try {
             $wekaProcess->mustRun();
-            file_put_contents($this->jsonFilePath, $wekaProcess->getOutput());
-            $output->writeln(sprintf('Generated JSON file \'%s\'', $this->jsonFilePath));
+//            file_put_contents($this->jsonFilePath, $wekaProcess->getOutput());
+            $jsonDecoder = new JsonDecode([JsonDecode::ASSOCIATIVE => true]);
+            $jsonArffData = $jsonDecoder->decode($wekaProcess->getOutput(), JsonEncoder::FORMAT);
+
+            $jsonArffAttributes = $jsonArffData['header']['attributes'][0]['labels'];
+            array_shift($jsonArffData['header']['attributes']);
+            $jsonVocabulary = $jsonArffData['header']['attributes'];
+            $jsonArffData = $jsonArffData['data'];
+            array_unshift($jsonArffData[0]['values'], "0:'" . $jsonArffAttributes[0] . "'");
+            $totalRecords = count($jsonArffData);
+            $data = [];
+            for($i=0; $i<$totalRecords; $i++ ) {
+                array_shift($jsonArffData[$i]['values']);
+                $data[$jsonArffAttributes[$i]] = $jsonArffData[$i]['values'];
+                $tmpScoreData = [];
+                foreach ($data[$jsonArffAttributes[$i]] as $k => $scoringRecord) {
+                    $scoringRecord = explode(':', $scoringRecord);
+
+                    $tmpScoreData[$scoringRecord[0]-1] = (float) $scoringRecord[1];
+                    if(isset($jsonVocabulary[$scoringRecord[0]-1]['name'])) {
+                        $jsonVocabulary[$scoringRecord[0] - 1] = $jsonVocabulary[$scoringRecord[0] - 1]['name'];
+                    }
+                }
+                $data[$jsonArffAttributes[$i]] = $tmpScoreData;
+            }
+
+            $newJsonData = [
+                'referenceIndex' => $jsonArffAttributes,
+                'vocabularyIndex' => $jsonVocabulary,
+                'data' => $data
+            ];
+            file_put_contents(
+                $this->jsonFilePath,
+                json_encode(
+                    $newJsonData, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE
+                )
+            );
+            $io->success(sprintf('Generated JSON file \'%s\'', $this->jsonFilePath));
         } catch (ProcessFailedException $exception) {
-            echo $exception->getMessage();
+            $io->error($exception->getMessage());
         }
     }
 
-    private function _normalize(InputInterface $input, OutputInterface $output)
+    private function _normalize(SymfonyStyle $io)
     {
         $wekaProcess = Process::fromShellCommandline(
             $this->getSimpleCLIPrefix() . " " .
@@ -122,13 +173,13 @@ class BibleMinerIndexCommand extends WekaCommand
         try {
             $wekaProcess->mustRun();
             file_put_contents($this->arffFile, $wekaProcess->getOutput());
-            $output->writeln(sprintf('Normalize filter applied to \'%s\'', $this->arffFile));
+            $io->success(sprintf('Normalize filter applied to \'%s\'', $this->arffFile));
         } catch (ProcessFailedException $exception) {
-            echo $exception->getMessage();
+            $io->error($exception->getMessage());
         }
     }
 
-    private function _applyStringToWordVector(InputInterface $input, OutputInterface $output)
+    private function _applyStringToWordVector(InputInterface $input, SymfonyStyle $io)
     {
         $stopWords = ($input->getOption('stopwords') == false)?
             'weka.core.stopwords.Null':'"weka.core.stopwords.WordsFromFile '.
@@ -158,17 +209,25 @@ class BibleMinerIndexCommand extends WekaCommand
         try {
             $wekaProcess->mustRun();
             file_put_contents($this->arffFile, $wekaProcess->getOutput());
-            $output->writeln(sprintf('StringToWordVector filter applied to \'%s\'', $this->arffFile));
+            $io->success(sprintf('StringToWordVector filter applied to \'%s\'', $this->arffFile));
+            $io->success(
+                sprintf(
+                    'Dictionary file saved to to \'%s\'',
+                    $this->tmpPath . DIRECTORY_SEPARATOR . self::TMP_PREFIX .
+                $input->getArgument('bible-version') .
+                (($input->getOption('stem') == true)?'-stem':'') . '.dct.txt'
+                )
+            );
         } catch (ProcessFailedException $exception) {
-            echo $exception->getMessage();
+            $io->error($exception->getMessage());
         }
     }
 
-    private function _applyNominalToString(InputInterface $input, OutputInterface $output)
+    private function _applyNominalToString(SymfonyStyle $io)
     {
         $wekaProcess = Process::fromShellCommandline(
             $this->getSimpleCLIPrefix() . " " .
-            'weka.filters.unsupervised.attribute.NominalToString -C first-last ' .
+            'weka.filters.unsupervised.attribute.NominalToString -C last ' .
             '-i ' . $this->arffFile, null, [
                 'WEKA_HOME' => $this->parameters->get('weka')['home'],
             ]
@@ -177,9 +236,9 @@ class BibleMinerIndexCommand extends WekaCommand
         try {
             $wekaProcess->mustRun();
             file_put_contents($this->arffFile, $wekaProcess->getOutput());
-            $output->writeln(sprintf('NominalToString filter applied to \'%s\'', $this->arffFile));
+            $io->success(sprintf('NominalToString filter applied to \'%s\'', $this->arffFile));
         } catch (ProcessFailedException $exception) {
-            echo $exception->getMessage();
+            $io->error($exception->getMessage());
         }
     }
 
@@ -188,7 +247,7 @@ class BibleMinerIndexCommand extends WekaCommand
      * @param OutputInterface $output
      * @throws DBALException
      */
-    private function _createArffFromDatabase(InputInterface $input, OutputInterface $output)
+    private function _createArffFromDatabase(InputInterface $input, SymfonyStyle $io)
     {
         $this->generateDatabaseUtilsProps(
             $this->dbalConnectionFactory->getConnection(
@@ -206,13 +265,13 @@ class BibleMinerIndexCommand extends WekaCommand
         try {
             $wekaProcess->mustRun();
             file_put_contents($this->arffFile, $wekaProcess->getOutput());
-            $output->writeln(sprintf('Arff file saved to \'%s\'', $this->arffFile));
+            $io->success(sprintf('Arff file saved to \'%s\'', $this->arffFile));
         } catch (ProcessFailedException $exception) {
-            echo $exception->getMessage();
+            $io->error($exception->getMessage());
         }
     }
 
-    private function _createArffFromCSV(InputInterface $input, OutputInterface $output)
+    private function _createArffFromCSV(InputInterface $input, SymfonyStyle $io)
     {
         $wekaProcess = Process::fromShellCommandline(
             $this->getSimpleCLIPrefix() . " " . 'weka.core.converters.CSVLoader' . " " .
@@ -226,9 +285,9 @@ class BibleMinerIndexCommand extends WekaCommand
         try {
             $wekaProcess->mustRun();
             file_put_contents($this->arffFile, $wekaProcess->getOutput());
-            $output->writeln(sprintf('Arff file saved to \'%s\'', $this->arffFile));
+            $io->success(sprintf('Arff file saved to \'%s\'', $this->arffFile));
         } catch (ProcessFailedException $exception) {
-            echo $exception->getMessage();
+            $io->error($exception->getMessage());
         }
     }
 }
