@@ -36,7 +36,7 @@ class BibleMinerIndexCommand extends WekaCommand
                 'Data source name SpaRVG, SpaRV1865, KJ2000, etc.'
             )
             ->addOption(
-                'stemmed', null,InputOption::VALUE_OPTIONAL,
+                'stem', null,InputOption::VALUE_OPTIONAL,
                 'Create stemmed vocabulary and index', true
             )
             ->addOption(
@@ -64,12 +64,12 @@ class BibleMinerIndexCommand extends WekaCommand
         $io = new SymfonyStyle($input, $output);
 
         $this->arffFile = $this->tmpPath . DIRECTORY_SEPARATOR .
-            '__' . $input->getArgument('bible-version') .
-            (($input->getOption('stemmed') == true)?'-stem':'') . '.arff';
+            self::TMP_PREFIX . $input->getArgument('bible-version') .
+            (($input->getOption('stem') == true)?'-stem':'') . '.arff';
 
-        $this->jsonFilePath = $this->tmpPath . DIRECTORY_SEPARATOR . '__' .
+        $this->jsonFilePath = $this->tmpPath . DIRECTORY_SEPARATOR . self::TMP_PREFIX .
             $input->getArgument('bible-version') .
-            (($input->getOption('stemmed') == true)?'-stem':'') . '.json';
+            (($input->getOption('stem') == true)?'-stem':'') . '.json';
 
 
 
@@ -147,9 +147,9 @@ class BibleMinerIndexCommand extends WekaCommand
             '-stopwords-handler ' . $stopWords . " " . '-M' . " " . $threshold . " " .
 //            '-tokenizer weka.core.tokenizers.AlphabeticTokenizer' . " " .
             '-tokenizer "weka.core.tokenizers.WordTokenizer -delimiters \" \""' . " " .
-            '-dictionary' . " " . $this->tmpPath . DIRECTORY_SEPARATOR . '__' .
+            '-dictionary' . " " . $this->tmpPath . DIRECTORY_SEPARATOR . self::TMP_PREFIX .
             $input->getArgument('bible-version') .
-            (($input->getOption('stemmed') == true)?'-stem':'') . '.dct.txt' . " " .
+            (($input->getOption('stem') == true)?'-stem':'') . '.dct.txt' . " " .
             '-i ' . $this->arffFile, null, [
                 'WEKA_HOME' => $this->parameters->get('weka')['home'],
             ]
@@ -216,8 +216,8 @@ class BibleMinerIndexCommand extends WekaCommand
     {
         $wekaProcess = Process::fromShellCommandline(
             $this->getSimpleCLIPrefix() . " " . 'weka.core.converters.CSVLoader' . " " .
-            $this->tmpPath . DIRECTORY_SEPARATOR . '__' . $input->getArgument('bible-version') .
-            (($input->getOption('stemmed') == true)?'-stem':'') . '-tokens' . '.csv' . " " . '-B 31103',
+            $this->tmpPath . DIRECTORY_SEPARATOR . self::TMP_PREFIX . $input->getArgument('bible-version') .
+            (($input->getOption('stem') == true)?'-stem':'') . '-tokens' . '.csv' . " " . '-B 31103',
             null, [
                 'WEKA_HOME' => $this->parameters->get('weka')['home'],
             ]

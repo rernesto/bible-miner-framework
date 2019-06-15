@@ -143,22 +143,23 @@ class BibleMinerTextImportCommand extends MinerCommand
 
             try {
                 $this->dm->flush();
-                file_put_contents(
-                    $this->tmpPath . DIRECTORY_SEPARATOR .
-                    '__' . $input->getArgument('datasource') .'.csv',
-                    $verseCsvWriter->getContent()
-                );
-                file_put_contents(
-                    $this->tmpPath . DIRECTORY_SEPARATOR .
-                    '__' . $input->getArgument('datasource') .'-tokens.csv',
-                    $verseTokensCsvWriter->getContent()
-                );
-                file_put_contents(
-                    $this->tmpPath . DIRECTORY_SEPARATOR .
-                    '__' . $input->getArgument('datasource') .'-stem-tokens.csv',
-                    $stemmedTokensCsvWriter->getContent()
-                );
-                $io->success(sprintf('Commited %d documents to collection...', $i));
+
+                $csvFilePath = $this->tmpPath . DIRECTORY_SEPARATOR .
+                    self::TMP_PREFIX . $input->getArgument('datasource') .'-text.csv';
+                $io->comment(sprintf('Generating %s file', $csvFilePath));
+                file_put_contents($csvFilePath, $verseCsvWriter->getContent());
+
+                $csvFilePath = $this->tmpPath . DIRECTORY_SEPARATOR .
+                    self::TMP_PREFIX . $input->getArgument('datasource') .'-tokens.csv';
+                $io->comment(sprintf('Generating %s file', $csvFilePath));
+                file_put_contents($csvFilePath, $verseTokensCsvWriter->getContent());
+
+                $csvFilePath = $this->tmpPath . DIRECTORY_SEPARATOR .
+                    self::TMP_PREFIX . $input->getArgument('datasource') .'-stem-tokens.csv';
+                $io->comment(sprintf('Generating %s file', $csvFilePath));
+                file_put_contents($csvFilePath, $stemmedTokensCsvWriter->getContent());
+
+                $io->success(sprintf('CSV files created successfully.'));
             } catch (MongoDBException $e) {
                 $io->error($e->getMessage());
             }
