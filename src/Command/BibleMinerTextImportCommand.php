@@ -61,12 +61,11 @@ class BibleMinerTextImportCommand extends MinerCommand
             ->findOneBy(['shortName' => $input->getArgument('datasource')]);
 
         if($input->getOption('truncate') == true) {
-            $io->warning(sprintf('Deleting records for Bible Verses Table %s', 'bible_verses'));
             $documentsToErase = $this->dm->createQueryBuilder(BibleVerse::class)
                 ->field('bibleVersion')
                 ->references($bibleVersionDocument)
                 ->getQuery()->execute();
-
+            $io->warning(sprintf('Deleting %d records for Bible Verses Collection', count($documentsToErase->toArray())));
             foreach($documentsToErase as $documentToErase) {
                 $this->dm->remove($documentToErase);
             }
@@ -139,7 +138,7 @@ class BibleMinerTextImportCommand extends MinerCommand
             }
             $io->progressFinish();
 
-            $io->text(sprintf('Commiting %d documents to collection...', $i));
+            $io->text(sprintf('Submitting %d documents to collection...', $i));
 
             try {
                 $this->dm->flush();

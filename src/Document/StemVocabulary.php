@@ -4,6 +4,8 @@ namespace App\Document;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
+use Doctrine\ODM\MongoDB\PersistentCollection;
+
 /**
  * Class Vocabulary
  * @package App\Document
@@ -34,6 +36,14 @@ class StemVocabulary
      * @ODM\ReferenceOne(targetDocument=Language::class, inversedBy="stemWords")
      */
     protected $language;
+
+    /**
+     * @var PersistentCollection
+     *
+     * @ODM\ReferenceMany(targetDocument=BibleRawVSM::class, mappedBy="stemVocabulary")
+     *
+     */
+    protected $stemVsmValues;
 
     /**
      * @return string
@@ -76,6 +86,24 @@ class StemVocabulary
     public function setLanguage(Language $language): StemVocabulary
     {
         $this->language = $language;
+        return $this;
+    }
+
+    /**
+     * @return PersistentCollection
+     */
+    public function getStemVsmValues(): PersistentCollection
+    {
+        return $this->stemVsmValues;
+    }
+
+    /**
+     * @param PersistentCollection $stemVsmValues
+     * @return StemVocabulary
+     */
+    public function setStemVsmValues(PersistentCollection $stemVsmValues): StemVocabulary
+    {
+        $this->stemVsmValues = $stemVsmValues;
         return $this;
     }
 }

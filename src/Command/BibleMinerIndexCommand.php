@@ -4,8 +4,16 @@
 namespace App\Command;
 
 
+use App\Document\BibleRawVSM;
+use App\Document\BibleStemVSM;
+use App\Document\BibleVerse;
 use App\Document\BibleVersion;
+use App\Document\RawVocabulary;
+use App\Document\StemVocabulary;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ODM\MongoDB\MongoDBException;
+use MongoDB\Driver\Exception\BulkWriteException;
+use MongoDuplicateKeyException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -102,10 +110,10 @@ class BibleMinerIndexCommand extends WekaCommand
             $this->_normalize($io);
         }
 
-        $this->_convertToJSON($io);
+        $this->_convertToJSON($io, $input);
     }
 
-    private function _convertToJSON(SymfonyStyle $io) {
+    private function _convertToJSON(SymfonyStyle $io, InputInterface $input) {
 
         $wekaProcess = Process::fromShellCommandline(
             $this->getSimpleCLIPrefix() . " " .
@@ -117,7 +125,6 @@ class BibleMinerIndexCommand extends WekaCommand
 
         try {
             $wekaProcess->mustRun();
-//            file_put_contents($this->jsonFilePath, $wekaProcess->getOutput());
             $jsonDecoder = new JsonDecode([JsonDecode::ASSOCIATIVE => true]);
             $jsonArffData = $jsonDecoder->decode($wekaProcess->getOutput(), JsonEncoder::FORMAT);
 
@@ -127,34 +134,96 @@ class BibleMinerIndexCommand extends WekaCommand
             $jsonArffData = $jsonArffData['data'];
             array_unshift($jsonArffData[0]['values'], "0:'" . $jsonArffAttributes[0] . "'");
             $totalRecords = count($jsonArffData);
-            $data = [];
-            for($i=0; $i<$totalRecords; $i++ ) {
-                array_shift($jsonArffData[$i]['values']);
-                $data[$jsonArffAttributes[$i]] = $jsonArffData[$i]['values'];
-                $tmpScoreData = [];
-                foreach ($data[$jsonArffAttributes[$i]] as $k => $scoringRecord) {
-                    $scoringRecord = explode(':', $scoringRecord);
 
-                    $tmpScoreData[$scoringRecord[0]-1] = (float) $scoringRecord[1];
-                    if(isset($jsonVocabulary[$scoringRecord[0]-1]['name'])) {
-                        $jsonVocabulary[$scoringRecord[0] - 1] = $jsonVocabulary[$scoringRecord[0] - 1]['name'];
-                    }
+            try {
+                $bibleVerses = $this->dm->createQueryBuilder(BibleVerse::class)
+                    ->select('id')
+                    ->field('bibleVersion.id')->equals($this->bibleVersionDocument->getId())
+                    ->hydrate(false)
+                    ->getQuery()->execute();
+                $bibleVerses = array_map('strval',
+                    array_map('current', $bibleVerses->toArray())
+                );
+
+                if ($input->getOption('stem') == true) {
+                    $vsmQueryBuilder = $this->dm->createQueryBuilder(BibleStemVSM::class);
+
+                } else {
+                    $vsmQueryBuilder = $this->dm->createQueryBuilder(BibleRawVSM::class);
                 }
-                $data[$jsonArffAttributes[$i]] = $tmpScoreData;
+
+                $vsmQueryBuilder->remove()
+                    ->field('bibleVerse')->in($bibleVerses)
+                    ->getQuery()->execute();
+            } catch (MongoDBException $e) {
+                $io->error($e->getMessage());
             }
 
-            $newJsonData = [
-                'referenceIndex' => $jsonArffAttributes,
-                'vocabularyIndex' => $jsonVocabulary,
-                'data' => $data
-            ];
-            file_put_contents(
-                $this->jsonFilePath,
-                json_encode(
-                    $newJsonData, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE
-                )
-            );
-            $io->success(sprintf('Generated JSON file \'%s\'', $this->jsonFilePath));
+            $language = $this->bibleVersionDocument->getLanguage();
+            $vocabularyDocuments = [];
+            $vocabularyDocumentRepository = $input->getOption('stem') == true?
+                $this->dm->getRepository(StemVocabulary::class) :
+                $this->dm->getRepository(RawVocabulary::class)
+            ;
+            $io->comment('Processing records...');
+            $io->progressStart($totalRecords);
+            for($i=0; $i<$totalRecords; $i++ ) {
+                array_shift($jsonArffData[$i]['values']);
+                $bibleVerse = $this->dm->getRepository(BibleVerse::class)
+                    ->findOneBy(
+                        [
+                            'reference' => $jsonArffAttributes[$i],
+                            'bibleVersion.id' => $this->bibleVersionDocument->getId()
+                        ]
+                    );
+
+                foreach ($jsonArffData[$i]['values'] as $k => $scoringRecord) {
+                    $scoringRecord = explode(':', $scoringRecord);
+
+                    if(isset($jsonVocabulary[$scoringRecord[0]-1]['name'])) {
+                        $jsonVocabulary[$scoringRecord[0] - 1] = $jsonVocabulary[$scoringRecord[0] - 1]['name'];
+
+                        $vocabularyDocument = $vocabularyDocumentRepository->findOneBy(
+                            ['language.id' => $language->getId(), 'word' => $jsonVocabulary[$scoringRecord[0] - 1]]
+                        );
+
+                        if(is_null($vocabularyDocument)) {
+                            if ($input->getOption('stem') == true) {
+                                $vocabularyDocument = new StemVocabulary();
+                            } else {
+                                $vocabularyDocument = new RawVocabulary();
+                            }
+                            $vocabularyDocument->setWord($jsonVocabulary[$scoringRecord[0] - 1])
+                                ->setLanguage($language);
+                            $this->dm->persist($vocabularyDocument);
+                        }
+
+                        $vocabularyDocuments[$scoringRecord[0] - 1] = $vocabularyDocument;
+                    } else {
+                        $vocabularyDocument = $vocabularyDocuments[$scoringRecord[0] - 1];
+                    }
+                    if ($input->getOption('stem') == true) {
+                        $vsmDocument = new BibleStemVSM();
+                    } else {
+                        $vsmDocument = new BibleRawVSM();
+                    }
+                    $vsmDocument->setVerse($bibleVerse)
+                        ->setVocabulary($vocabularyDocument)
+                        ->setTfIdfValue($scoringRecord[1]);
+                    $this->dm->persist($vsmDocument);
+
+                }
+
+                $io->progressAdvance();
+            }
+            $io->progressFinish();
+            try {
+                $this->dm->flush();
+            } catch (BulkWriteException $e) {
+            } catch (MongoDBException $e) {
+                $io->error($e->getMessage());
+                exit();
+            } catch (MongoDuplicateKeyException $e){}
         } catch (ProcessFailedException $exception) {
             $io->error($exception->getMessage());
         }
@@ -244,7 +313,7 @@ class BibleMinerIndexCommand extends WekaCommand
 
     /**
      * @param InputInterface $input
-     * @param OutputInterface $output
+     * @param SymfonyStyle $io
      * @throws DBALException
      */
     private function _createArffFromDatabase(InputInterface $input, SymfonyStyle $io)

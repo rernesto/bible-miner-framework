@@ -4,6 +4,8 @@ namespace App\Document;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
+use Doctrine\ODM\MongoDB\PersistentCollection;
+
 /**
  * Class Vocabulary
  * @package App\Document
@@ -34,6 +36,14 @@ class RawVocabulary
      * @ODM\ReferenceOne(targetDocument=Language::class, inversedBy="rawWords")
      */
     protected $language;
+
+    /**
+     * @var PersistentCollection
+     *
+     * @ODM\ReferenceMany(targetDocument=BibleRawVSM::class, mappedBy="rawVocabulary")
+     *
+     */
+    protected $rawVsmValues;
 
     /**
      * @return string
@@ -76,6 +86,24 @@ class RawVocabulary
     public function setLanguage(Language $language): RawVocabulary
     {
         $this->language = $language;
+        return $this;
+    }
+
+    /**
+     * @return PersistentCollection
+     */
+    public function getRawVsmValues(): PersistentCollection
+    {
+        return $this->rawVsmValues;
+    }
+
+    /**
+     * @param PersistentCollection $rawVsmValues
+     * @return RawVocabulary
+     */
+    public function setRawVsmValues(PersistentCollection $rawVsmValues): RawVocabulary
+    {
+        $this->rawVsmValues = $rawVsmValues;
         return $this;
     }
 }

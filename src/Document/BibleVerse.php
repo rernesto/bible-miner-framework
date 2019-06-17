@@ -4,6 +4,7 @@ namespace App\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\ODM\MongoDB\PersistentCollection;
 
 /**
  * Class BibleVersion
@@ -48,6 +49,22 @@ class BibleVerse
      * @ODM\ReferenceOne(targetDocument=BibleVersion::class, inversedBy="bibleVerses")
      */
     protected $bibleVersion;
+
+    /**
+     * @var PersistentCollection
+     *
+     * @ODM\ReferenceMany(targetDocument=BibleRawVSM::class, mappedBy="bibleVerse")
+     *
+     */
+    protected $rawVsmValues;
+
+    /**
+     * @var PersistentCollection
+     *
+     * @ODM\ReferenceMany(targetDocument=BibleStemVSM::class, mappedBy="bibleVerse")
+     *
+     */
+    protected $stemVsmValues;
 
     /**
      * @return string
@@ -129,5 +146,21 @@ class BibleVerse
         return $this;
     }
 
+    /**
+     * @return PersistentCollection
+     */
+    public function getRawVsmValues(): PersistentCollection
+    {
+        return $this->rawVsmValues;
+    }
 
+    /**
+     * @param PersistentCollection $rawVsmValues
+     * @return BibleVerse
+     */
+    public function setRawVsmValues(PersistentCollection $rawVsmValues): BibleVerse
+    {
+        $this->rawVsmValues = $rawVsmValues;
+        return $this;
+    }
 }
