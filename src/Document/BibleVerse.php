@@ -163,4 +163,22 @@ class BibleVerse
         $this->rawVsmValues = $rawVsmValues;
         return $this;
     }
+
+    /**
+     * @return PersistentCollection
+     */
+    public function getStemVsmValues(): PersistentCollection
+    {
+        return $this->stemVsmValues;
+    }
+
+    /**
+     * @param PersistentCollection $stemVsmValues
+     * @return BibleVerse
+     */
+    public function setStemVsmValues(PersistentCollection $stemVsmValues): BibleVerse
+    {
+        $this->stemVsmValues = $stemVsmValues;
+        return $this;
+    }
 }

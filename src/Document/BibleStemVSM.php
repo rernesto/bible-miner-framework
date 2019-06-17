@@ -25,14 +25,14 @@ class BibleStemVSM
     /**
      * @var BibleVerse
      *
-     * @ODM\ReferenceOne(targetDocument=BibleVerse::class, inversedBy="stemVsmValues", storeAs="id")
+     * @ODM\ReferenceOne(targetDocument=BibleVerse::class, inversedBy="stemVsmValues")
      */
     protected $verse;
 
     /**
      * @var StemVocabulary
      *
-     * @ODM\ReferenceOne(targetDocument=StemVocabulary::class, inversedBy="stemVsmValues", storeAs="id")
+     * @ODM\ReferenceOne(targetDocument=StemVocabulary::class, inversedBy="stemVsmValues")
      */
     protected $vocabulary;
 

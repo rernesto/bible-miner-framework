@@ -25,14 +25,14 @@ class BibleRawVSM
     /**
      * @var BibleVerse
      *
-     * @ODM\ReferenceOne(targetDocument=BibleVerse::class, inversedBy="rawVsmValues", storeAs="id")
+     * @ODM\ReferenceOne(targetDocument=BibleVerse::class, inversedBy="rawVsmValues")
      */
     protected $verse;
 
     /**
      * @var RawVocabulary
      *
-     * @ODM\ReferenceOne(targetDocument=RawVocabulary::class, inversedBy="rawVsmValues", storeAs="id")
+     * @ODM\ReferenceOne(targetDocument=RawVocabulary::class, inversedBy="rawVsmValues")
      */
     protected $vocabulary;
 

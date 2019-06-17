@@ -153,7 +153,7 @@ class BibleMinerIndexCommand extends WekaCommand
                 }
 
                 $vsmQueryBuilder->remove()
-                    ->field('bibleVerse')->in($bibleVerses)
+                    ->field('bibleVerse.id')->in($bibleVerses)
                     ->getQuery()->execute();
             } catch (MongoDBException $e) {
                 $io->error($e->getMessage());
