@@ -2,7 +2,9 @@ api_platform:
     title: '%appTitle%'
     version: '%appVersion%'
     mapping:
-        paths: ['%kernel.project_dir%/src/Document']
+        paths:
+#            - '%kernel.project_dir%/src/Document'
+            - '%kernel.project_dir%/src/Entity'
     formats:
         # Disabled json-ld to avoid coupling on data structures
         #jsonld:
