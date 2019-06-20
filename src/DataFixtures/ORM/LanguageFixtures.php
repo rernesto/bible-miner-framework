@@ -1,9 +1,9 @@
 <?php
 
-namespace App\DataFixtures\ODM;
+namespace App\DataFixtures\ORM;
 
-use App\Document\Language;
-use Doctrine\Bundle\MongoDBBundle\Fixture\Fixture;
+use App\Entity\Language;
+use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Yaml\Yaml;

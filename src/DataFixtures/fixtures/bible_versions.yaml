@@ -1,7 +1,10 @@
-App\Document\BibleVersion:
+BibleVersion:
     - shortName: 'KJ2000'
       language: 'en'
+      name: 'King James 2000'
     - shortName: 'SpaRVG'
       language: 'es'
+      name: 'Reina-Valera-Gomez'
     - shortName: 'SpaRV1865'
       language: 'es'
+      name: 'Reina Valera 1865'

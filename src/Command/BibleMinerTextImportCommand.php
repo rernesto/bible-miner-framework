@@ -7,7 +7,9 @@ namespace App\Command;
 use App\Document\BibleVerse;
 use App\Document\BibleVersion;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
+use Doctrine\ORM\EntityManagerInterface;
 use League\Csv\CannotInsertRecord;
 use League\Csv\Writer;
 use Phpml\Tokenization\WordTokenizer;
@@ -22,6 +24,11 @@ class BibleMinerTextImportCommand extends MinerCommand
 {
     protected static $defaultName = 'bible-miner:text:import';
 
+    /**
+     * @var DocumentManager|EntityManagerInterface
+     */
+    protected $manager;
+
     protected function configure()
     {
         $this
@@ -34,7 +41,10 @@ class BibleMinerTextImportCommand extends MinerCommand
                 'truncate', null,InputOption::VALUE_OPTIONAL,
                 'Truncate Vocabulary Collection.', true
             )
-
+            ->addOption(
+                'orm', null, InputOption::VALUE_OPTIONAL,
+                'Use mapped ORM database', true
+            )
         ;
     }
 
@@ -54,23 +64,43 @@ class BibleMinerTextImportCommand extends MinerCommand
             'db' . $input->getArgument('datasource')
         );
 
-        /**
-         * @var $bibleVersionDocument BibleVersion
-         */
-        $bibleVersionDocument = $this->dm->getRepository(BibleVersion::class)
-            ->findOneBy(['shortName' => $input->getArgument('datasource')]);
+        if($input->getOption('orm') == false) {
+            $this->manager = $this->dm;
+            /**
+             * @var $bibleVersion BibleVersion
+             */
+            $bibleVersion = $this->manager->getRepository(BibleVersion::class)
+                ->findOneBy(['shortName' => $input->getArgument('datasource')]);
+        } else {
+            $this->manager = $this->em;
+            $bibleVersion = $this->manager->getRepository(\App\Entity\BibleVersion::class)
+                ->findOneBy(['shortName' => $input->getArgument('datasource')]);
+        }
 
         if($input->getOption('truncate') == true) {
-            $documentsToErase = $this->dm->createQueryBuilder(BibleVerse::class)
-                ->field('bibleVersion')
-                ->references($bibleVersionDocument)
-                ->getQuery()->execute();
-            $io->warning(sprintf('Deleting %d records for Bible Verses Collection', count($documentsToErase->toArray())));
-            foreach($documentsToErase as $documentToErase) {
-                $this->dm->remove($documentToErase);
+            if($input->getOption('orm') == true){
+                $toErase = $this->em->getRepository(\App\Entity\BibleVerse::class)
+                    ->createQueryBuilder('bv')
+                    ->innerJoin('bv.bibleVersion', 'bvbv')
+                    ->where('bvbv.shortName = :shortName')
+                    ->setParameter('shortName', $bibleVersion->getShortName())
+                    ->getQuery()->getResult();
+                $io->warning(sprintf('Deleting %d records from Bible Verses Table', count($toErase)));
+
             }
+            else {
+                $toErase = $this->dm->createQueryBuilder(BibleVerse::class)
+                    ->field('bibleVersion')
+                    ->references($bibleVersion)
+                    ->getQuery()->execute();
+                $io->warning(sprintf('Deleting %d records from Bible Verses Collection', count($toErase->toArray())));
+            }
+            foreach ($toErase as $erase) {
+                $this->manager->remove($erase);
+            }
+            $this->manager->flush();
         }
-        $this->dm->flush();
+
 
         if (isset($dbalConnection)) {
             $bibleTextQueryBuilder = $dbalConnection->createQueryBuilder();
@@ -98,50 +128,59 @@ class BibleMinerTextImportCommand extends MinerCommand
             $stemmedTokensCsvWriter->insertOne(['references', 'stemmed_tokens']);
 
             foreach($bibleVerses as $bibleVerse) {
-                $bibleVerseDocument = new BibleVerse();
-                $bibleVerseDocument->setReference($bibleVerse->ref);
-                $bibleVerseDocument->setVerseText(
+                if($input->getOption('orm') == false) {
+                    $bibleVerseInstance = new BibleVerse();
+                } else {
+                    $bibleVerseInstance = new \App\Entity\BibleVerse();
+                }
+                $bibleVerseInstance->setReference($bibleVerse->ref);
+                $bibleVerseInstance->setVerseText(
                     addslashes(preg_replace('/\n/', '', $bibleVerse->verse))
                 );
-                $bibleVerseDocument->setVerseTokens(
+                $bibleVerseInstance->setVerseTokens(
                     implode(
                         " ",
                         array_map(
                             'mb_strtolower',
-                            $wordTokenizer->tokenize($bibleVerseDocument->getVerseText())
+                            $wordTokenizer->tokenize($bibleVerseInstance->getVerseText())
                         )
                     )
                 );
-                $bibleVerseDocument->setBibleVersion($bibleVersionDocument);
-                $this->dm->persist($bibleVerseDocument);
+                $bibleVerseInstance->setBibleVersion($bibleVersion);
+                $this->manager->persist($bibleVerseInstance);
 
-                $verseCsvWriter->insertOne([$bibleVerseDocument->getReference(), $bibleVerseDocument->getVerseText()]);
-                $verseTokensCsvWriter->insertOne([$bibleVerseDocument->getReference(), $bibleVerseDocument->getVerseTokens()]);
+                $verseCsvWriter->insertOne([$bibleVerseInstance->getReference(), $bibleVerseInstance->getVerseText()]);
+                $verseTokensCsvWriter->insertOne([$bibleVerseInstance->getReference(), $bibleVerseInstance->getVerseTokens()]);
 
-                $stemmerLanguage = 'Wamania\\Snowball\\' . $bibleVersionDocument->getLanguage()->getName();
+                $stemmerLanguage = 'Wamania\\Snowball\\' . $bibleVersion->getLanguage()->getName();
 
                 /**
                  * @var $stemmer Stemmer
                  */
                 $stemmer = new $stemmerLanguage();
 
-                $stemmedVerse = array_map(
-                        function($word) use ($stemmer, $stemmedTokensCsvWriter, $bibleVerseDocument) {
+                $stemmedVerse = implode( ' ',
+                    array_map(
+                        function($word) use ($stemmer, $stemmedTokensCsvWriter, $bibleVerseInstance) {
                             return $stemmer->stem($word);
-                        }, explode(' ', $bibleVerseDocument->getVerseTokens())
+                        }, explode(' ', $bibleVerseInstance->getVerseTokens())
+                    )
                 );
 
-                $stemmedTokensCsvWriter->insertOne([$bibleVerseDocument->getReference(), implode(' ', $stemmedVerse)]);
+                $bibleVerseInstance->setStemVerseTokens($stemmedVerse);
+                $this->manager->persist($bibleVerseInstance);
+
+                $stemmedTokensCsvWriter->insertOne([$bibleVerseInstance->getReference(), $stemmedVerse]);
 
                 $i++;
                 $io->progressAdvance();
             }
             $io->progressFinish();
 
-            $io->text(sprintf('Submitting %d documents to collection...', $i));
+            $io->text(sprintf('Submitting %d documents...', $i));
 
             try {
-                $this->dm->flush();
+                $this->manager->flush();
 
                 $csvFilePath = $this->tmpPath . DIRECTORY_SEPARATOR .
                     self::TMP_PREFIX . $input->getArgument('datasource') .'-text.csv';

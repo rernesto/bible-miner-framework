@@ -1,14 +1,14 @@
 <?php
 
-namespace App\DataFixtures\ODM;
+namespace App\DataFixtures\ORM;
 
-use App\Document\Language;
-use Doctrine\Bundle\MongoDBBundle\Fixture\Fixture;
+use App\Entity\BibleVersion;
+use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Yaml\Yaml;
 
-class LanguageFixtures extends Fixture implements OrderedFixtureInterface
+class BibleVersionFixtures extends Fixture implements OrderedFixtureInterface
 {
     /**
      * Load data from yaml file
@@ -19,7 +19,7 @@ class LanguageFixtures extends Fixture implements OrderedFixtureInterface
     {
         return Yaml::parse(
             file_get_contents(
-                realpath(__DIR__ . '/../fixtures/languages.yaml')
+                realpath(__DIR__ . '/../fixtures/bible_versions.yaml')
             )
         );
     }
@@ -33,15 +33,16 @@ class LanguageFixtures extends Fixture implements OrderedFixtureInterface
     {
         $data = $this->loadData();
 
-        foreach ($data['Language'] as $k => $record) {
+        foreach ($data['BibleVersion'] as $k => $record) {
             /**
-             * @var $object Language
+             * @var $object BibleVersion
              */
-            $object = new Language();
+            $object = new BibleVersion();
             $object->setShortName($record['shortName']);
             $object->setName($record['name']);
-
+            $object->setLanguage($this->getReference(md5($record['language'])));
             $manager->persist($object);
+
             $this->addReference(md5($object->getShortName()), $object);
         }
 
@@ -55,6 +56,6 @@ class LanguageFixtures extends Fixture implements OrderedFixtureInterface
      */
     public function getOrder()
     {
-        return 1;
+        return 2;
     }
 }

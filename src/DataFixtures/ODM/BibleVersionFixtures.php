@@ -33,16 +33,16 @@ class BibleVersionFixtures extends Fixture implements OrderedFixtureInterface
     {
         $data = $this->loadData();
 
-        foreach ($data[BibleVersion::class] as $k => $record) {
+        foreach ($data['BibleVersion'] as $k => $record) {
             /**
-             * @var $document BibleVersion
+             * @var $object BibleVersion
              */
-            $document = new BibleVersion();
-            $document->setShortName($record['shortName']);
-            $document->setLanguage($this->getReference(md5($record['language'])));
-            $manager->persist($document);
+            $object = new BibleVersion();
+            $object->setShortName($record['shortName']);
+            $object->setLanguage($this->getReference(md5($record['language'])));
+            $manager->persist($object);
 
-            $this->addReference(md5($document->getShortName()), $document);
+            $this->addReference(md5($object->getShortName()), $object);
         }
 
         $manager->flush();

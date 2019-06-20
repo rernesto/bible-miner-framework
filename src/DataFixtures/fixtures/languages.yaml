@@ -1,4 +1,4 @@
-App\Document\Language:
+Language:
     - shortName: 'en'
       name: 'English'
     - shortName: 'es'

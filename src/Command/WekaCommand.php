@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Database\DBAL\ConnectionFactory;
 use Doctrine\DBAL\Connection;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 abstract class WekaCommand extends MinerCommand
@@ -27,10 +28,10 @@ abstract class WekaCommand extends MinerCommand
     }
 
     public function __construct(ConnectionFactory $dbalConnectionFactory, DocumentManager $dm,
-                                ParameterBagInterface $parameters, ?string $name = null)
+                                EntityManagerInterface $em, ParameterBagInterface $parameters, ?string $name = null)
     {
         $this->wekaConfig = $parameters->get('weka');
-        parent::__construct($dbalConnectionFactory, $dm, $parameters, $name);
+        parent::__construct($dbalConnectionFactory, $dm, $em, $parameters, $name);
     }
 
     protected function getSimpleCLIPrefix()

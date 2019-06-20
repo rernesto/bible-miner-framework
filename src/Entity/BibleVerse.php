@@ -19,21 +19,31 @@ class BibleVerse
     private $id;
 
     /**
+     * @var string
      * @ORM\Column(type="string", length=16)
      */
     private $reference;
 
     /**
+     * @var string
      * @ORM\Column(type="text")
      */
     private $verseText;
 
     /**
+     * @var string
      * @ORM\Column(type="text")
      */
     private $verseTokens;
 
     /**
+     * @var string
+     * @ORM\Column(type="text")
+     */
+    private $stemVerseTokens;
+
+    /**
+     * @var BibleVersion
      * @ORM\ManyToOne(targetEntity="App\Entity\BibleVersion")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -88,6 +98,18 @@ class BibleVerse
     public function setBibleVersion(?BibleVersion $bibleVersion): self
     {
         $this->bibleVersion = $bibleVersion;
+
+        return $this;
+    }
+
+    public function getStemVerseTokens(): ?string
+    {
+        return $this->stemVerseTokens;
+    }
+
+    public function setStemVerseTokens(string $stemVerseTokens): self
+    {
+        $this->stemVerseTokens = $stemVerseTokens;
 
         return $this;
     }

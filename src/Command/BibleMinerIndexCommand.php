@@ -11,7 +11,11 @@ use App\Document\BibleVersion;
 use App\Document\RawVocabulary;
 use App\Document\StemVocabulary;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use MongoDB\Driver\Exception\BulkWriteException;
 use MongoDuplicateKeyException;
 use Symfony\Component\Console\Input\InputArgument;
@@ -33,9 +37,14 @@ class BibleMinerIndexCommand extends WekaCommand
     protected $jsonFilePath;
 
     /**
-     * @var BibleVersion
+     * @var DocumentManager|EntityManagerInterface
      */
-    protected $bibleVersionDocument;
+    protected $manager;
+
+    /**
+     * @var BibleVersion|\App\Entity\BibleVersion
+     */
+    protected $bibleVersion;
 
     protected function configure()
     {
@@ -69,7 +78,10 @@ class BibleMinerIndexCommand extends WekaCommand
                 'use-database', null,InputOption::VALUE_OPTIONAL,
                 'Use database instead CSV (Not recommended)', false
             )
-
+            ->addOption(
+                'orm', null, InputOption::VALUE_OPTIONAL,
+                'Use mapped ORM database', true
+            )
         ;
     }
 
@@ -87,8 +99,18 @@ class BibleMinerIndexCommand extends WekaCommand
 
 
 
-        $this->bibleVersionDocument = $this->dm->getRepository(BibleVersion::class)
-            ->findOneBy(['shortName' => $input->getArgument('bible-version')]);
+        if($input->getOption('orm') == false) {
+            $this->manager = $this->dm;
+            /**
+             * @var $bibleVersion BibleVersion
+             */
+            $this->bibleVersion = $this->manager->getRepository(BibleVersion::class)
+                ->findOneBy(['shortName' => $input->getArgument('bible-version')]);
+        } else {
+            $this->manager = $this->em;
+            $this->bibleVersion = $this->manager->getRepository(\App\Entity\BibleVersion::class)
+                ->findOneBy(['shortName' => $input->getArgument('bible-version')]);
+        }
 
 
         if ($input->getOption('use-database') == true) {
@@ -110,10 +132,141 @@ class BibleMinerIndexCommand extends WekaCommand
             $this->_normalize($io);
         }
 
-        $this->_convertToJSON($io, $input);
+        if($input->getOption('orm') == false) {
+            $this->_saveWithDocumentManager($io, $input);
+        } else {
+            $this->_saveWithEntityManager($io, $input);
+        }
     }
 
-    private function _convertToJSON(SymfonyStyle $io, InputInterface $input) {
+    private function _saveWithEntityManager(SymfonyStyle $io, InputInterface $input)
+    {
+        $wekaProcess = Process::fromShellCommandline(
+            $this->getSimpleCLIPrefix() . " " .
+            'weka.core.converters.JSONSaver' . " " .
+            '-i ' . $this->arffFile, null, [
+                'WEKA_HOME' => $this->parameters->get('weka')['home'],
+            ]
+        );
+
+        try {
+            $wekaProcess->mustRun();
+            $jsonDecoder = new JsonDecode([JsonDecode::ASSOCIATIVE => true]);
+            $jsonArffData = $jsonDecoder->decode($wekaProcess->getOutput(), JsonEncoder::FORMAT);
+
+            $jsonArffAttributes = $jsonArffData['header']['attributes'][0]['labels'];
+            array_shift($jsonArffData['header']['attributes']);
+            $jsonVocabulary = $jsonArffData['header']['attributes'];
+            $jsonArffData = $jsonArffData['data'];
+            array_unshift($jsonArffData[0]['values'], "0:'" . $jsonArffAttributes[0] . "'");
+            $totalRecords = count($jsonArffData);
+
+
+            if ($input->getOption('stem') == true) {
+                $vsmQueryBuilder = $this->em->getRepository(\App\Entity\BibleStemVSM::class)
+                    ->createQueryBuilder('bvsm');
+
+            } else {
+                $vsmQueryBuilder = $this->em->getRepository(\App\Entity\BibleRawVSM::class)
+                    ->createQueryBuilder('bvsm');
+            }
+
+            $bibleVerses = $this->em->getRepository(\App\Entity\BibleVerse::class)
+                ->createQueryBuilder('bv')
+                ->innerJoin('bv.bibleVersion', 'bvbv')
+                ->where('bv.bibleVersion = :bibleVersion')
+                ->setParameter('bibleVersion', $this->bibleVersion)
+                ->getQuery()->getArrayResult();
+
+            $vsmQueryBuilder
+                ->where('bvsm.verse in (:bibleVerses)')
+                ->setParameter('bibleVerses', $bibleVerses, \Doctrine\DBAL\Types\ArrayType::OBJECT)
+                ->delete()
+                ->getQuery()->execute();
+
+            $language = $this->bibleVersion->getLanguage();
+            $vocabularyObjects = [];
+            $vocabularyRepository = $input->getOption('stem') == true?
+                $this->em->getRepository(\App\Entity\StemVocabulary::class) :
+                $this->em->getRepository(\App\Entity\RawVocabulary::class)
+            ;
+            $io->comment('Processing records...');
+            $io->progressStart($totalRecords);
+
+            for($i=0; $i<$totalRecords; $i++ ) {
+                array_shift($jsonArffData[$i]['values']);
+                try {
+                    $bibleVerse = $this->em->getRepository(\App\Entity\BibleVerse::class)
+                        ->createQueryBuilder('bv')
+                        ->innerJoin('bv.bibleVersion', 'bvbv')
+                        ->where('bvbv.shortName = :shortName')
+                        ->andWhere('bv.reference = :reference')
+                        ->setParameter('shortName', $this->bibleVersion->getShortName())
+                        ->setParameter('reference', $jsonArffAttributes[$i])
+                        ->getQuery()->getSingleResult();
+                } catch (NoResultException $e) {
+                    $io->error($e->getMessage());
+                    exit();
+                } catch (NonUniqueResultException $e) {
+                    $io->error($e->getMessage());
+                    exit();
+                }
+
+                foreach ($jsonArffData[$i]['values'] as $k => $scoringRecord) {
+                    $scoringRecord = explode(':', $scoringRecord);
+
+                    if(isset($jsonVocabulary[$scoringRecord[0]-1]['name'])) {
+                        $jsonVocabulary[$scoringRecord[0] - 1] = $jsonVocabulary[$scoringRecord[0] - 1]['name'];
+
+                        try {
+                            $vocabularyObject = $vocabularyRepository->createQueryBuilder('v')
+                                ->innerJoin('v.language', 'l')
+                                ->where('l.id = :languageId')
+                                ->andWhere('v.word = :word')
+                                ->setParameter('word', $jsonVocabulary[$scoringRecord[0] - 1])
+                                ->setParameter('languageId', $language->getId())
+                                ->getQuery()->getSingleResult();
+                        } catch (NoResultException $e) {
+                            if ($input->getOption('stem') == true) {
+                                $vocabularyObject = new \App\Entity\StemVocabulary();
+                            } else {
+                                $vocabularyObject = new \App\Entity\RawVocabulary();
+                            }
+                            $vocabularyObject->setWord($jsonVocabulary[$scoringRecord[0] - 1])
+                                ->setLanguage($language);
+                            $this->em->persist($vocabularyObject);
+                            $this->em->flush($vocabularyObject);
+                        } catch (NonUniqueResultException $e) {
+                            $io->error($e->getMessage());
+                            $vocabularyObject = null;
+                        };
+                        $vocabularyObjects[$scoringRecord[0] - 1] = $vocabularyObject;
+                    } else {
+                        $vocabularyObject = $vocabularyObjects[$scoringRecord[0] - 1];
+                    }
+                    if ($input->getOption('stem') == true) {
+                        $vsmDocument = new \App\Entity\BibleStemVSM();
+                    } else {
+                        $vsmDocument = new \App\Entity\BibleRawVSM();
+                    }
+                    $vsmDocument->setVerse($bibleVerse)
+                        ->setVocabulary($vocabularyObject)
+                        ->setTfIdfValue($scoringRecord[1]);
+                    $this->em->persist($vsmDocument);
+
+                }
+
+                $io->progressAdvance();
+            }
+            $io->progressFinish();
+            $this->em->flush();
+        } catch (ProcessFailedException $exception) {
+            $io->error($exception->getMessage());
+        }
+    }
+
+    private function _saveWithDocumentManager(SymfonyStyle $io, InputInterface $input)
+    {
 
         $wekaProcess = Process::fromShellCommandline(
             $this->getSimpleCLIPrefix() . " " .
@@ -138,7 +291,7 @@ class BibleMinerIndexCommand extends WekaCommand
             try {
                 $bibleVerses = $this->dm->createQueryBuilder(BibleVerse::class)
                     ->select('id')
-                    ->field('bibleVersion.id')->equals($this->bibleVersionDocument->getId())
+                    ->field('bibleVersion.id')->equals($this->bibleVersion->getId())
                     ->hydrate(false)
                     ->getQuery()->execute();
                 $bibleVerses = array_map('strval',
@@ -159,7 +312,7 @@ class BibleMinerIndexCommand extends WekaCommand
                 $io->error($e->getMessage());
             }
 
-            $language = $this->bibleVersionDocument->getLanguage();
+            $language = $this->bibleVersion->getLanguage();
             $vocabularyDocuments = [];
             $vocabularyDocumentRepository = $input->getOption('stem') == true?
                 $this->dm->getRepository(StemVocabulary::class) :
@@ -173,7 +326,7 @@ class BibleMinerIndexCommand extends WekaCommand
                     ->findOneBy(
                         [
                             'reference' => $jsonArffAttributes[$i],
-                            'bibleVersion.id' => $this->bibleVersionDocument->getId()
+                            'bibleVersion.id' => $this->bibleVersion->getId()
                         ]
                     );
 
@@ -253,7 +406,7 @@ class BibleMinerIndexCommand extends WekaCommand
         $stopWords = ($input->getOption('stopwords') == false)?
             'weka.core.stopwords.Null':'"weka.core.stopwords.WordsFromFile '.
             '-stopwords ' . $this->dataPath . DIRECTORY_SEPARATOR . 'stopwords' . DIRECTORY_SEPARATOR .
-            strtolower($this->bibleVersionDocument->getLanguage()->getName()) .
+            strtolower($this->bibleVersion->getLanguage()->getName()) .
             '.txt"';
 
         $threshold = (int) $input->getOption('threshold');
