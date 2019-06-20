@@ -30,6 +30,12 @@ class BibleStemVSM
      */
     private $vocabulary;
 
+    /**
+     * @var float
+     * @ORM\Column(type="float")
+     */
+    private $tfIdfValue;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -55,6 +61,18 @@ class BibleStemVSM
     public function setVocabulary(?StemVocabulary $vocabulary): self
     {
         $this->vocabulary = $vocabulary;
+
+        return $this;
+    }
+
+    public function getTfIdfValue(): ?float
+    {
+        return $this->tfIdfValue;
+    }
+
+    public function setTfIdfValue(float $tfIdfValue): self
+    {
+        $this->tfIdfValue = $tfIdfValue;
 
         return $this;
     }
