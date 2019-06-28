@@ -4,9 +4,37 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use App\Controller\Api\Operation\VerseSearchOperationApiController;
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ *     collectionOperations={
+ *          "get",
+ *          "search_ranked"={
+ *              "method"="GET",
+ *              "controller"=VerseSearchOperationApiController::class,
+ *              "path"="/bible_verses/search_ranked",
+ *              "swagger_context" = {
+ *                  "parameters"={
+ *                      {
+ *                          "name"="search_query",
+ *                          "in"="query",
+ *                          "description"="Search Query",
+ *                          "required"="true",
+ *                          "type"="string"
+ *                      },
+ *                      {
+ *                          "name"="bible_version",
+ *                          "in"="query",
+ *                          "description"="Bible Version",
+ *                          "required"="true",
+ *                          "type"="integer"
+ *                      }
+ *                  }
+ *              }
+ *          }
+ *     }
+ * )
  * @ORM\Entity(repositoryClass="App\Repository\BibleVerseRepository")
  */
 class BibleVerse

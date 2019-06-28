@@ -13,8 +13,10 @@
         "doctrine/dbal": "^2.9",
         "doctrine/mongodb-odm-bundle": "4.*",
         "league/csv": "^9.2",
+        "lexik/jwt-authentication-bundle": "^2.6",
         "markrogoyski/math-php": "^0.51.0",
         "nelmio/cors-bundle": "^1.5",
+        "pagerfanta/pagerfanta": "^2.1",
         "php-ai/php-ml": "^0.8.0",
         "symfony/apache-pack": "^1.0",
         "symfony/asset": "4.3.*",
@@ -80,6 +82,7 @@
         "guzzlehttp/guzzle": "^6.3",
         "symfony/maker-bundle": "^1.11",
         "symfony/phpunit-bridge": "4.3.*",
+        "symfony/profiler-pack": "^1.0",
         "symfony/web-server-bundle": "4.3.*"
     },
     "minimum-stability": "dev",

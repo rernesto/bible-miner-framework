@@ -4,7 +4,6 @@ unas
 unos
 uno
 sobre
-todo
 tambien
 tras
 otro
@@ -176,3 +175,12 @@ podrian
 podriais
 yo
 aquel
+y
+a
+de
+del
+o
+u
+se
+que
+porque
