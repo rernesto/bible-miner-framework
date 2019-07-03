@@ -68,6 +68,36 @@ class SearchModel
         return $paginator;
     }
 
+    public function getBibleBookVersesPaginator($versionId, $bookId) {
+        $queryBuilder = $this->connection->createQueryBuilder();
+        $queryBuilder
+            ->select('bvr.id, bvr.reference, bvr.chapter, bvr.verse, bvr.verse_text')
+            ->from('bible_verse', 'bvr')
+            ->innerJoin(
+                'bvr', 'bible_book', 'bb',
+                'bb.id = bvr.book_id'
+            )
+            ->innerJoin(
+                'bvr', 'bible_version', 'bv',
+                'bv.id = bvr.bible_version_id'
+            )
+            ->where($queryBuilder->expr()->eq('bb.id', ':bookId'))
+            ->andWhere($queryBuilder->expr()->eq('bv.id', ':versionId'))
+            ->setParameter('bookId', $bookId)
+            ->setParameter('versionId', $versionId)
+        ;
+
+        $paginationAdapter = new DoctrineDbalAdapter($queryBuilder,
+            function(QueryBuilder $queryBuilder) {
+                return $queryBuilder->select('COUNT(*)');
+            }
+        );
+
+        $paginator = new Pagerfanta($paginationAdapter);
+
+        return $paginator;
+    }
+
     public function findByTfIdfSearchQuery(array $query = null, $bibleVersion = null, $stem = true)
     {
         if ($stem == true) {
@@ -127,5 +157,19 @@ class SearchModel
         ;
 
         return $mainQueryBuilder;
+    }
+
+    public function calculateVersePage($versionId, $bookId, $chapter, $verse)
+    {
+        $queryBuilder = $this->connection->createQueryBuilder();
+
+        $queryBuilder->select('CONCAT(bvr.chapter, ":", bvr.verse)')
+            ->from("bible_verse", 'bvr')
+            ->where($queryBuilder->expr()->eq('bvr.book_id', $bookId))
+            ->andWhere($queryBuilder->expr()->eq('bvr.bible_version_id', $versionId));
+        $result = $queryBuilder->execute()->fetchAll(\PDO::FETCH_COLUMN);
+        $page = (int) ceil((array_search("{$chapter}:{$verse}", $result) + 1)/10);
+
+        return $page;
     }
 }

@@ -6,10 +6,13 @@ namespace App\Command;
 
 use App\Document\BibleVerse;
 use App\Document\BibleVersion;
+use App\Entity\BibleBook;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use League\Csv\CannotInsertRecord;
 use League\Csv\Writer;
 use Phpml\Tokenization\WordTokenizer;
@@ -128,15 +131,40 @@ class BibleMinerTextImportCommand extends MinerCommand
             $stemmedTokensCsvWriter->insertOne(['references', 'stemmed_tokens']);
 
             foreach($bibleVerses as $bibleVerse) {
+                $splitRef = preg_split( "/(\s|:)/ui", $bibleVerse->ref );
                 if($input->getOption('orm') == false) {
                     $bibleVerseInstance = new BibleVerse();
                 } else {
                     $bibleVerseInstance = new \App\Entity\BibleVerse();
+                    $bibleBookQueryBuilder = $this->manager->createQueryBuilder();
+                    try {
+                        /**
+                         * @var $bibleBook BibleBook
+                         */
+                        $bibleBook = $bibleBookQueryBuilder->select('bb')
+                            ->from(BibleBook::class, 'bb')
+                            ->innerJoin('bb.language', 'l')
+                            ->where(
+                                $bibleBookQueryBuilder->expr()
+                                    ->eq('l.id', $bibleVersion->getLanguage()->getId())
+                            )->andWhere(
+                                $bibleBookQueryBuilder->expr()->eq('bb.shortName', ':shortName')
+                            )->setParameter('shortName', $splitRef[0])
+                            ->getQuery()->getSingleResult();
+                        $bibleVerseInstance->setBook($bibleBook);
+                        $bibleVerseInstance->setVerseText(
+                            addslashes(preg_replace('/\n/', '', $bibleVerse->verse))
+                        );
+                        $bibleVerseInstance->setLocalReference(
+                            $bibleBook->getShortName() . ' ' . $splitRef[1] . ':' . $splitRef[2]
+                        );
+                    } catch (NoResultException $e) {
+                    } catch (NonUniqueResultException $e) {
+                    }
                 }
+                $bibleVerseInstance->setChapter((int) $splitRef[1]);
+                $bibleVerseInstance->setVerse((int) $splitRef[2]);
                 $bibleVerseInstance->setReference($bibleVerse->ref);
-                $bibleVerseInstance->setVerseText(
-                    addslashes(preg_replace('/\n/', '', $bibleVerse->verse))
-                );
                 $bibleVerseInstance->setVerseTokens(
                     implode(
                         " ",

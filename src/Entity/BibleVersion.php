@@ -4,9 +4,26 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use App\Controller\Api\Operation\VersionLocalizedOperationApiController;
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ *     collectionOperations={
+ *          "get",
+ *          "bible_version_localized"={
+ *              "method"="GET",
+ *              "controller"=VersionLocalizedOperationApiController::class,
+ *              "path"="/bible_versions/localized",
+ *              "swagger_context" = {
+ *                  "parameters"={
+ *                  }
+ *              }
+ *          }
+ *     },
+ *     itemOperations={
+ *          "get"
+ *     }
+ * )
  * @ORM\Entity(repositoryClass="App\Repository\BibleVersionRepository")
  */
 class BibleVersion

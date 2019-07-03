@@ -5,6 +5,9 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use App\Controller\Api\Operation\VerseSearchOperationApiController;
+use App\Controller\Api\Operation\VerseChapterOperationApiController;
+use App\Controller\Api\Operation\VerseNumberOperationApiController;
+use App\Controller\Api\Operation\VerseReadOperationApiController;
 
 /**
  * @ApiResource(
@@ -32,7 +35,87 @@ use App\Controller\Api\Operation\VerseSearchOperationApiController;
  *                      }
  *                  }
  *              }
+ *          },
+ *          "chapters"={
+ *              "method"="GET",
+ *              "controller"=VerseChapterOperationApiController::class,
+ *              "path"="/bible_verses/chapters",
+ *              "swagger_context" = {
+ *                  "parameters"={
+ *                      {
+ *                          "name"="book_id",
+ *                          "in"="query",
+ *                          "description"="Book id",
+ *                          "required"="true",
+ *                          "type"="integer"
+ *                      }
+ *                  }
+ *              }
+ *          },
+ *          "verses"={
+ *              "method"="GET",
+ *              "controller"=VerseNumberOperationApiController::class,
+ *              "path"="/bible_verses/verses",
+ *              "swagger_context" = {
+ *                  "parameters"={
+ *                      {
+ *                          "name"="book_id",
+ *                          "in"="query",
+ *                          "description"="Book id",
+ *                          "required"="true",
+ *                          "type"="integer"
+ *                      },
+ *                      {
+ *                          "name"="chapter",
+ *                          "in"="query",
+ *                          "description"="Chapter number",
+ *                          "required"="true",
+ *                          "type"="integer"
+ *                      }
+ *                  }
+ *              }
+ *          },
+ *          "read"={
+ *              "method"="GET",
+ *              "controller"=VerseReadOperationApiController::class,
+ *              "path"="/bible_verses/read",
+ *              "swagger_context" = {
+ *                  "parameters"={
+ *                      {
+ *                          "name"="version",
+ *                          "in"="query",
+ *                          "description"="Bible version",
+ *                          "required"="true",
+ *                          "type"="integer"
+ *                      },
+ *                      {
+ *                          "name"="book",
+ *                          "in"="query",
+ *                          "description"="Book id",
+ *                          "required"="true",
+ *                          "type"="integer"
+ *                      },
+ *                      {
+ *                          "name"="chapter",
+ *                          "in"="query",
+ *                          "description"="Chapter number",
+ *                          "required"="true",
+ *                          "type"="integer"
+ *                      }
+ *                      ,
+ *                      {
+ *                          "name"="verse",
+ *                          "in"="query",
+ *                          "description"="Verse number",
+ *                          "required"="true",
+ *                          "type"="integer"
+ *                      }
+ *                  }
+ *              }
  *          }
+ *     },
+ *     itemOperations={
+ *          "get"
  *     }
  * )
  * @ORM\Entity(repositoryClass="App\Repository\BibleVerseRepository")
@@ -47,10 +130,34 @@ class BibleVerse
     private $id;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\BibleBook")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $book;
+
+    /**
+     * @var int
+     * @ORM\Column(type="integer")
+     */
+    private $chapter;
+
+    /**
+     * @var int
+     * @ORM\Column(type="integer")
+     */
+    private $verse;
+
+    /**
      * @var string
      * @ORM\Column(type="string", length=16)
      */
     private $reference;
+
+    /**
+     * @var string
+     * @ORM\Column(type="string", length=16)
+     */
+    private $localReference;
 
     /**
      * @var string
@@ -138,6 +245,54 @@ class BibleVerse
     public function setStemVerseTokens(string $stemVerseTokens): self
     {
         $this->stemVerseTokens = $stemVerseTokens;
+
+        return $this;
+    }
+
+    public function getVerse(): ?int
+    {
+        return $this->verse;
+    }
+
+    public function setVerse(int $verse): self
+    {
+        $this->verse = $verse;
+
+        return $this;
+    }
+
+    public function getChapter(): ?int
+    {
+        return $this->chapter;
+    }
+
+    public function setChapter(int $chapter): self
+    {
+        $this->chapter = $chapter;
+
+        return $this;
+    }
+
+    public function getLocalReference(): ?string
+    {
+        return $this->localReference;
+    }
+
+    public function setLocalReference(string $localReference): self
+    {
+        $this->localReference = $localReference;
+
+        return $this;
+    }
+
+    public function getBook(): ?BibleBook
+    {
+        return $this->book;
+    }
+
+    public function setBook(?BibleBook $book): self
+    {
+        $this->book = $book;
 
         return $this;
     }

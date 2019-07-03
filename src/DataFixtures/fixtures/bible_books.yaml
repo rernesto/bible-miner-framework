@@ -1,0 +1,530 @@
+BibleBook:
+# English
+  - canonicalName: 'Genesis'
+    shortName: 'Gen'
+    language: 'en'
+
+  - canonicalName: 'Exodus'
+    shortName: 'Exo'
+    language: 'en'
+
+  - canonicalName: 'Leviticus'
+    shortName: 'Lev'
+    language: 'en'
+
+  - canonicalName: 'Numbers'
+    shortName: 'Num'
+    language: 'en'
+
+  - canonicalName: 'Deuteronomy'
+    shortName: 'Deu'
+    language: 'en'
+
+  - canonicalName: 'Joshua'
+    shortName: 'Jos'
+    language: 'en'
+
+  - canonicalName: 'Judges'
+    shortName: 'Jdg'
+    language: 'en'
+
+  - canonicalName: 'Ruth'
+    shortName: 'Rth'
+    language: 'en'
+
+  - canonicalName: '1 Samuel'
+    shortName: '1Sa'
+    language: 'en'
+
+  - canonicalName: '2 Samuel'
+    shortName: '2Sa'
+    language: 'en'
+
+  - canonicalName: '1 Kings'
+    shortName: '1Ki'
+    language: 'en'
+
+  - canonicalName: '2 Kings'
+    shortName: '2Ki'
+    language: 'en'
+
+  - canonicalName: '1 Chronicles'
+    shortName: '1Ch'
+    language: 'en'
+
+  - canonicalName: '2 Chronicles'
+    shortName: '2Ch'
+    language: 'en'
+
+  - canonicalName: 'Ezra'
+    shortName: 'Ezr'
+    language: 'en'
+
+  - canonicalName: 'Nehemiah'
+    shortName: 'Neh'
+    language: 'en'
+
+  - canonicalName: 'Esther'
+    shortName: 'Est'
+    language: 'en'
+
+  - canonicalName: 'Job'
+    shortName: 'Job'
+    language: 'en'
+
+  - canonicalName: 'Psalms'
+    shortName: 'Psa'
+    language: 'en'
+
+  - canonicalName: 'Proverbs'
+    shortName: 'Pro'
+    language: 'en'
+
+  - canonicalName: 'Ecclesiastes'
+    shortName: 'Ecc'
+    language: 'en'
+
+  - canonicalName: 'Song of Solomon'
+    shortName: 'Son'
+    language: 'en'
+
+  - canonicalName: 'Isaiah'
+    shortName: 'Isa'
+    language: 'en'
+
+  - canonicalName: 'Jeremiah'
+    shortName: 'Jer'
+    language: 'en'
+
+  - canonicalName: 'Lamentations'
+    shortName: 'Lam'
+    language: 'en'
+
+  - canonicalName: 'Ezekiel'
+    shortName: 'Eze'
+    language: 'en'
+
+  - canonicalName: 'Daniel'
+    shortName: 'Dan'
+    language: 'en'
+
+  - canonicalName: 'Hosea'
+    shortName: 'Hos'
+    language: 'en'
+
+  - canonicalName: 'Joel'
+    shortName: 'Joe'
+    language: 'en'
+
+  - canonicalName: 'Amos'
+    shortName: 'Amo'
+    language: 'en'
+
+  - canonicalName: 'Obadiah'
+    shortName: 'Oba'
+    language: 'en'
+
+  - canonicalName: 'Jonah'
+    shortName: 'Jon'
+    language: 'en'
+
+  - canonicalName: 'Micah'
+    shortName: 'Mic'
+    language: 'en'
+
+  - canonicalName: 'Nahum'
+    shortName: 'Nah'
+    language: 'en'
+
+  - canonicalName: 'Habakkuk'
+    shortName: 'Hab'
+    language: 'en'
+
+  - canonicalName: 'Zephaniah'
+    shortName: 'Zep'
+    language: 'en'
+
+  - canonicalName: 'Haggai'
+    shortName: 'Hag'
+    language: 'en'
+
+  - canonicalName: 'Zechariah'
+    shortName: 'Zec'
+    language: 'en'
+
+  - canonicalName: 'Malachi'
+    shortName: 'Mal'
+    language: 'en'
+
+  - canonicalName: 'Matthew'
+    shortName: 'Mat'
+    language: 'en'
+
+  - canonicalName: 'Mark'
+    shortName: 'Mar'
+    language: 'en'
+
+  - canonicalName: 'Luke'
+    shortName: 'Luk'
+    language: 'en'
+
+  - canonicalName: 'John'
+    shortName: 'Joh'
+    language: 'en'
+
+  - canonicalName: 'Acts'
+    shortName: 'Act'
+    language: 'en'
+
+  - canonicalName: 'Roman'
+    shortName: 'Rom'
+    language: 'en'
+
+  - canonicalName: '1 Corinthians'
+    shortName: '1Co'
+    language: 'en'
+
+  - canonicalName: '2 Corinthians'
+    shortName: '2Co'
+    language: 'en'
+
+  - canonicalName: 'Galatians'
+    shortName: 'Gal'
+    language: 'en'
+
+  - canonicalName: 'Ephesians'
+    shortName: 'Eph'
+    language: 'en'
+
+  - canonicalName: 'Philippians'
+    shortName: 'Phi'
+    language: 'en'
+
+  - canonicalName: 'Colossians'
+    shortName: 'Col'
+    language: 'en'
+
+  - canonicalName: '1 Thessalonians'
+    shortName: '1Th'
+    language: 'en'
+
+  - canonicalName: '2 Thessalonians'
+    shortName: '2Th'
+    language: 'en'
+
+  - canonicalName: '1 Timothy'
+    shortName: '1Ti'
+    language: 'en'
+
+  - canonicalName: '2 Timothy'
+    shortName: '2Ti'
+    language: 'en'
+
+  - canonicalName: 'Titus'
+    shortName: 'Tit'
+    language: 'en'
+
+  - canonicalName: 'Philemon'
+    shortName: 'Phm'
+    language: 'en'
+
+  - canonicalName: 'Hebrews'
+    shortName: 'Heb'
+    language: 'en'
+
+  - canonicalName: 'James'
+    shortName: 'Jam'
+    language: 'en'
+
+  - canonicalName: '1 Peter'
+    shortName: '1Pe'
+    language: 'en'
+
+  - canonicalName: '2 Peter'
+    shortName: '2Pe'
+    language: 'en'
+
+  - canonicalName: '1 John'
+    shortName: '1Jo'
+    language: 'en'
+
+  - canonicalName: '2 John'
+    shortName: '2Jo'
+    language: 'en'
+
+  - canonicalName: '3 John'
+    shortName: '3Jo'
+    language: 'en'
+
+  - canonicalName: 'Jude'
+    shortName: 'Jud'
+    language: 'en'
+
+  - canonicalName: 'Revelations'
+    shortName: 'Rev'
+    language: 'en'
+# Spanish
+  - canonicalName: 'Génesis'
+    shortName: 'Gen'
+    language: 'es'
+
+  - canonicalName: 'Éxodo'
+    shortName: 'Exo'
+    language: 'es'
+
+  - canonicalName: 'Levítico'
+    shortName: 'Lev'
+    language: 'es'
+
+  - canonicalName: 'Números'
+    shortName: 'Num'
+    language: 'es'
+
+  - canonicalName: 'Deutoronomio'
+    shortName: 'Deu'
+    language: 'es'
+
+  - canonicalName: 'Josué'
+    shortName: 'Jos'
+    language: 'es'
+
+  - canonicalName: 'Jueces'
+    shortName: 'Jdg'
+    language: 'es'
+
+  - canonicalName: 'Rut'
+    shortName: 'Rth'
+    language: 'es'
+
+  - canonicalName: '1 Samuel'
+    shortName: '1Sa'
+    language: 'es'
+
+  - canonicalName: '2 Samuel'
+    shortName: '2Sa'
+    language: 'es'
+
+  - canonicalName: '1 Reyes'
+    shortName: '1Ki'
+    language: 'es'
+
+  - canonicalName: '2 Reyes'
+    shortName: '2Ki'
+    language: 'es'
+
+  - canonicalName: '1 Crónicas'
+    shortName: '1Ch'
+    language: 'es'
+
+  - canonicalName: '2 Crónicas'
+    shortName: '2Ch'
+    language: 'es'
+
+  - canonicalName: 'Esdras'
+    shortName: 'Ezr'
+    language: 'es'
+
+  - canonicalName: 'Nehemías'
+    shortName: 'Neh'
+    language: 'es'
+
+  - canonicalName: 'Ester'
+    shortName: 'Est'
+    language: 'es'
+
+  - canonicalName: 'Job'
+    shortName: 'Job'
+    language: 'es'
+
+  - canonicalName: 'Salmos'
+    shortName: 'Psa'
+    language: 'es'
+
+  - canonicalName: 'Proverbios'
+    shortName: 'Pro'
+    language: 'es'
+
+  - canonicalName: 'Eclesiastés'
+    shortName: 'Ecc'
+    language: 'es'
+
+  - canonicalName: 'Cantar de los Cantares'
+    shortName: 'Son'
+    language: 'es'
+
+  - canonicalName: 'Isaías'
+    shortName: 'Isa'
+    language: 'es'
+
+  - canonicalName: 'Jeremías'
+    shortName: 'Jer'
+    language: 'es'
+
+  - canonicalName: 'Lamentaciones'
+    shortName: 'Lam'
+    language: 'es'
+
+  - canonicalName: 'Ezequiel'
+    shortName: 'Eze'
+    language: 'es'
+
+  - canonicalName: 'Daniel'
+    shortName: 'Dan'
+    language: 'es'
+
+  - canonicalName: 'Oseas'
+    shortName: 'Hos'
+    language: 'es'
+
+  - canonicalName: 'Joel'
+    shortName: 'Joe'
+    language: 'es'
+
+  - canonicalName: 'Amós'
+    shortName: 'Amo'
+    language: 'es'
+
+  - canonicalName: 'Abdías'
+    shortName: 'Oba'
+    language: 'es'
+
+  - canonicalName: 'Jonás'
+    shortName: 'Jon'
+    language: 'es'
+
+  - canonicalName: 'Miqueas'
+    shortName: 'Mic'
+    language: 'es'
+
+  - canonicalName: 'Nahum'
+    shortName: 'Nah'
+    language: 'es'
+
+  - canonicalName: 'Habacuc'
+    shortName: 'Hab'
+    language: 'es'
+
+  - canonicalName: 'Sofonías'
+    shortName: 'Zep'
+    language: 'es'
+
+  - canonicalName: 'Hageo'
+    shortName: 'Hag'
+    language: 'es'
+
+  - canonicalName: 'Zacarías'
+    shortName: 'Zec'
+    language: 'es'
+
+  - canonicalName: 'Malaquías'
+    shortName: 'Mal'
+    language: 'es'
+
+  - canonicalName: 'Mateo'
+    shortName: 'Mat'
+    language: 'es'
+
+  - canonicalName: 'Marcos'
+    shortName: 'Mar'
+    language: 'es'
+
+  - canonicalName: 'Lucas'
+    shortName: 'Luk'
+    language: 'es'
+
+  - canonicalName: 'Juan'
+    shortName: 'Joh'
+    language: 'es'
+
+  - canonicalName: 'Hechos'
+    shortName: 'Act'
+    language: 'es'
+
+  - canonicalName: 'Romanos'
+    shortName: 'Rom'
+    language: 'es'
+
+  - canonicalName: '1 Corintios'
+    shortName: '1Co'
+    language: 'es'
+
+  - canonicalName: '2 Corintios'
+    shortName: '2Co'
+    language: 'es'
+
+  - canonicalName: 'Gálatas'
+    shortName: 'Gal'
+    language: 'es'
+
+  - canonicalName: 'Efesios'
+    shortName: 'Eph'
+    language: 'es'
+
+  - canonicalName: 'Filipenses'
+    shortName: 'Phi'
+    language: 'es'
+
+  - canonicalName: 'Colosenses'
+    shortName: 'Col'
+    language: 'es'
+
+  - canonicalName: '1 Tesalonicenses'
+    shortName: '1Th'
+    language: 'es'
+
+  - canonicalName: '2 Tesalonicenses'
+    shortName: '2Th'
+    language: 'es'
+
+  - canonicalName: '1 Timoteo'
+    shortName: '1Ti'
+    language: 'es'
+
+  - canonicalName: '2 Timoteo'
+    shortName: '2Ti'
+    language: 'es'
+
+  - canonicalName: 'Tito'
+    shortName: 'Tit'
+    language: 'es'
+
+  - canonicalName: 'Filemón'
+    shortName: 'Phm'
+    language: 'es'
+
+  - canonicalName: 'Hebreos'
+    shortName: 'Heb'
+    language: 'es'
+
+  - canonicalName: 'Santiago'
+    shortName: 'Jam'
+    language: 'es'
+
+  - canonicalName: '1 Pedro'
+    shortName: '1Pe'
+    language: 'es'
+
+  - canonicalName: '2 Pedro'
+    shortName: '2Pe'
+    language: 'es'
+
+  - canonicalName: '1 Juan'
+    shortName: '1Jo'
+    language: 'es'
+
+  - canonicalName: '2 Juan'
+    shortName: '2Jo'
+    language: 'es'
+
+  - canonicalName: '3 Juan'
+    shortName: '3Jo'
+    language: 'es'
+
+  - canonicalName: 'Judas'
+    shortName: 'Jud'
+    language: 'es'
+
+  - canonicalName: 'Apocalipsis'
+    shortName: 'Rev'
+    language: 'es'
+
