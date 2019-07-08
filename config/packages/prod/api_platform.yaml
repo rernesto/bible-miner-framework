@@ -1,4 +1,4 @@
 api_platform:
-    enable_docs: false
+    enable_docs: true
     enable_swagger: true
     enable_re_doc: false
