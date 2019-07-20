@@ -44,7 +44,10 @@ class SearchModel
                 "bv2.verse_text AS verse_text, bsv3.words AS words",
                 "bsv3.bible_version_id AS bible_version_id,
                 bsv3.bible_version_name AS bible_version_name,
-                bsv3.matches AS matches, bsv3.score AS score"
+                bsv3.matches AS matches, bsv3.score AS score",
+                "bsv3.book_id AS book_id, bsv3.book_canonical_name AS book_canonical_name,
+                bsv3.book_short_name AS book_short_name,
+                bsv3.chapter_number AS chapter_number, bsv3.verse_number AS verse_number"
             )
             ->from('bible_verse', 'bv2')
             ->innerJoin(
@@ -140,7 +143,10 @@ class SearchModel
             "brc.verse_text AS verse_text, v2.words AS words",
             "brc.bible_version_id AS bible_version_id,
             bv.name AS bible_version_name,
-            v2.CountOf AS matches, v2.SumOf AS score"
+            v2.CountOf AS matches, v2.SumOf AS score",
+            "bb.id AS book_id, bb.canonical_name AS book_canonical_name,
+            bb.short_name AS book_short_name,
+            brc.chapter AS chapter_number, brc.verse AS verse_number"
         )
             ->from("bible_stem_vsm", 'bsv')
             ->innerJoin(
@@ -148,6 +154,7 @@ class SearchModel
                 'brc', 'brc.id = bsv.verse_id'
             )
             ->innerJoin('brc', 'bible_version', 'bv', 'bv.id = brc.bible_version_id')
+            ->innerJoin('brc', 'bible_book', 'bb', 'bb.id = brc.book_id')
             ->innerJoin(
                 'bsv', sprintf('(%s)', $subQueryBuilder->getSQL()), 'v2',
                 'v2.verse_id = bsv.verse_id'
