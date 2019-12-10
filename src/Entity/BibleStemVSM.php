@@ -23,19 +23,19 @@ class BibleStemVSM
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    protected $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\BibleVerse")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $verse;
+    protected $verse;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\StemVocabulary")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $vocabulary;
+    protected $vocabulary;
 
     /**
      * @var float

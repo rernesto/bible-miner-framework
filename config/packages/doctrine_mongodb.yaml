@@ -4,12 +4,7 @@ doctrine_mongodb:
     connections:
         default:
             server: '%env(resolve:MONGODB_URL)%'
-            options:
-                username: 'bible-miner'
-                password: '1Jxv9rRVVWcBeAV5'
-                db: 'admin'
-                authMechanism: 'SCRAM-SHA-1'
-
+            options: {}
     default_database: '%env(resolve:MONGODB_DB)%'
     document_managers:
         default:
