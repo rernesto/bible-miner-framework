@@ -72,10 +72,12 @@ abstract class WekaCommand extends MinerCommand
             $javaClassPath .= $this->wekaConfig['home'] . DIRECTORY_SEPARATOR .
                 $classPath . ":";
         }
-        foreach ($this->wekaConfig['packages'] as $package) {
-            foreach ($package['classpath'] as $packageClassPath) {
-                $javaClassPath .= $this->wekaConfig['home'] . DIRECTORY_SEPARATOR .
-                    'packages' . DIRECTORY_SEPARATOR . $packageClassPath . ':';
+        if (isset($this->wekaConfig['packages'])) {
+            foreach ($this->wekaConfig['packages'] as $package) {
+                foreach ($package['classpath'] as $packageClassPath) {
+                    $javaClassPath .= $this->wekaConfig['home'] . DIRECTORY_SEPARATOR .
+                        'packages' . DIRECTORY_SEPARATOR . $packageClassPath . ':';
+                }
             }
         }
         return rtrim($javaClassPath, ":");

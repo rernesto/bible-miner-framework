@@ -176,11 +176,11 @@ class BibleMinerIndexCommand extends WekaCommand
                 ->innerJoin('bv.bibleVersion', 'bvbv')
                 ->where('bv.bibleVersion = :bibleVersion')
                 ->setParameter('bibleVersion', $this->bibleVersion)
-                ->getQuery()->getArrayResult();
+                ->getQuery()->getResult();
 
             $vsmQueryBuilder
                 ->where('bvsm.verse in (:bibleVerses)')
-                ->setParameter('bibleVerses', $bibleVerses, \Doctrine\DBAL\Types\ArrayType::OBJECT)
+                ->setParameter('bibleVerses', $bibleVerses)
                 ->delete()
                 ->getQuery()->execute();
 
@@ -195,6 +195,7 @@ class BibleMinerIndexCommand extends WekaCommand
 
             for($i=0; $i<$totalRecords; $i++ ) {
                 array_shift($jsonArffData[$i]['values']);
+
                 try {
                     $bibleVerse = $this->em->getRepository(\App\Entity\BibleVerse::class)
                         ->createQueryBuilder('bv')
@@ -205,14 +206,15 @@ class BibleMinerIndexCommand extends WekaCommand
                         ->setParameter('reference', $jsonArffAttributes[$i])
                         ->getQuery()->getSingleResult();
                 } catch (NoResultException $e) {
-                    $io->error($e->getMessage());
+//                    $io->error($e->getMessage());
                     exit();
                 } catch (NonUniqueResultException $e) {
-                    $io->error($e->getMessage());
+//                    $io->error($e->getMessage());
                     exit();
                 }
 
                 foreach ($jsonArffData[$i]['values'] as $k => $scoringRecord) {
+
                     $scoringRecord = explode(':', $scoringRecord);
 
                     if(isset($jsonVocabulary[$scoringRecord[0]-1]['name'])) {
@@ -235,7 +237,7 @@ class BibleMinerIndexCommand extends WekaCommand
                             $vocabularyObject->setWord($jsonVocabulary[$scoringRecord[0] - 1])
                                 ->setLanguage($language);
                             $this->em->persist($vocabularyObject);
-                            $this->em->flush($vocabularyObject);
+                            $this->em->flush();
                         } catch (NonUniqueResultException $e) {
                             $io->error($e->getMessage());
                             $vocabularyObject = null;
